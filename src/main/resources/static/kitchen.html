@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kitchen - SmartDine</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body{
+     font-family:'Poppins',sans-serif;
+     background:#040404;color:#fff;
+    }
+    .navbar{background:#1f1f1f;}
+    .order-card{
+     background:#d1d1d1;
+     border:none;border-radius:16px;
+     box-shadow:0 6px 18px rgba(0,0,0,.4);
+    }
+    .btn-warning{border-radius:20px;}
+    .btn-success{border-radius:20px;}
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark">
+  <div class="container-fluid">
+    <span class="navbar-brand">👨‍🍳 Kitchen Dashboard</span>
+  </div>
+</nav>
+
+<div class="container my-4">
+  <div id="orders"></div>
+</div>
+<script>
+  const API = "/api/orders";
+
+  function loadOrders(){
+   fetch(API).then(r=>r.json()).then(data=>{
+    let html="";
+    data.filter(o => o.status !== "READY").forEach(o=>{
+     html += `
+     <div class="card order-card p-3 mb-3 text-dark">
+      <h5>Order #${o.id} | Table ${o.tableNo}</h5>
+      <ul>
+        ${o.items.map(i=>`<li>${i.name} x ${i.qty}</li>`).join("")}
+      </ul>
+      <p>Status: <b>${o.status}</b></p>
+      <div class="d-flex justify-content-between">
+        <button class="btn btn-sm btn-warning"
+          onclick="updateStatus(${o.id},'PREPARING')">Preparing</button>
+        <button class="btn btn-sm btn-success"
+          onclick="updateStatus(${o.id},'READY')">Ready</button>
+      </div>
+     </div>`;
+    });
+    document.getElementById("orders").innerHTML = html || "<p>No orders</p>";
+   });
+  }
+
+  function updateStatus(id,status){
+   fetch(API + "/" + id + "/status/" + status, { method: "PUT" })
+    .then(()=> loadOrders());
+  }
+
+  setInterval(loadOrders, 3000);
+  loadOrders();
+</script>
+
+</body>
+</html>
